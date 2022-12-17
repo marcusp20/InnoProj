@@ -36,7 +36,7 @@ def performActions():
     #     "1]/div[1]/ul[1]/li[1]/div[2]/div[1]/button[2]/svg[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body["
     #     "1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[2]/button[1]/span[1]\",\"value\":\"\"}]")
 
-    sites = read_from_file()
+    sites = read_from_file("demo.txt")
     site1 = sites[0]
 
     driver = webdriver.Chrome()
