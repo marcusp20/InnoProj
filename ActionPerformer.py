@@ -1,3 +1,6 @@
+import time
+
+import selenium.common.exceptions
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -42,15 +45,28 @@ def performActions():
     driver.get(site1.url)
     driver.implicitly_wait(10)
 
-    for e in site1.actions:
-        element = driver.find_element(By.XPATH, e.xpath)
-        actionChain = ActionChains(driver)
-        actionChain.move_to_element(element)
-        if e.action_type == "click":
-            actionChain.click(element)
-        else:
-            element.send_keys(e.value)
+    try:
+        for e in site1.actions:
+            element = driver.find_element(By.XPATH, e.xpath)
+            actionChain = ActionChains(driver)
+            actionChain.move_to_element(element)
+            if e.action_type == "click":
+                actionChain.click(element)
+            else:
+                element.send_keys(e.value)
 
-        actionChain.perform()
+            actionChain.perform()
+    # If it encounters an element it can't find, it'll
+    except selenium.common.exceptions.NoSuchElementException:
+        print("Can't take you further than this.")
 
-performActions()
+    alive = True
+    while alive:
+        time.sleep(10)
+        try:
+            url = driver.current_url
+        except selenium.WebDriverException:
+            alive = False
+
+if __name__ == "__main__":
+    performActions()
