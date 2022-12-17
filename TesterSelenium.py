@@ -8,8 +8,8 @@ import json
 import time
 from pathlib import Path
 
-
 filename = 'sites.txt'
+
 
 class Action:
     def __init__(self, action_type, xpath, value):
@@ -26,27 +26,29 @@ class Site:
         self.url = url
         self.actions = actions
 
+
 def default(o):
-	if isinstance(o, Action):
-		return {
-			'action_type': o.action_type,
-			'xpath': o.xpath,
-			'value': o.value
-		}
-	elif isinstance(o, Site):
-		obj = {
-			"url":o.url,
-			"actions":[]
-		}
-		for a in o.actions:
-			obj["actions"].append({
-				'action_type': a.type,
-				'xpath': a.xpath,
-				'value': a.value
-			})
-		return obj
-	else:
-		raise TypeError(f'Object of type {o.__class__.__name__} is not JSON serializable')
+    if isinstance(o, Action):
+        return {
+            'action_type': o.action_type,
+            'xpath': o.xpath,
+            'value': o.value
+        }
+    elif isinstance(o, Site):
+        obj = {
+            "url": o.url,
+            "actions": []
+        }
+        for a in o.actions:
+            obj["actions"].append({
+                'action_type': a.action_type,
+                'xpath': a.xpath,
+                'value': a.value
+            })
+        return obj
+    else:
+        raise TypeError(f'Object of type {o.__class__.__name__} is not JSON serializable')
+
 
 def write_to_file(sites):
     # Open the file in write mode
@@ -56,26 +58,28 @@ def write_to_file(sites):
         # Write the JSON string to the file
         f.write(data)
 
+
 def object_hook(d):
     if 'actions' in d:
         return Site(d['url'], [Action(a['action_type'], a['xpath'], a['value']) for a in d['actions']])
     return d
 
+
 # Read the sites and actions from a text file
 def read_from_file():
-	myfile = Path(filename)
-	myfile.touch(exist_ok=True)
+    myfile = Path(filename)
+    myfile.touch(exist_ok=True)
 
-	# Open the file in read mode
-	with open(filename, 'r') as f:
-		# Read the contents of the file
-		data = f.read()
-		if data == '':
-			return []
-			
-		# Convert the JSON string to a list of sites
-		sites = json.loads(data, object_hook=object_hook)
-		return sites
+    # Open the file in read mode
+    with open(filename, 'r') as f:
+        # Read the contents of the file
+        data = f.read()
+        if data == '':
+            return []
+
+        # Convert the JSON string to a list of sites
+        sites = json.loads(data, object_hook=object_hook)
+        return sites
 
 
 class MyServer(http.server.SimpleHTTPRequestHandler):
@@ -91,27 +95,29 @@ class MyServer(http.server.SimpleHTTPRequestHandler):
         # Unpack the JSON object from the request body
         data = json.loads(body)
 
-		print(data)
+        print(data)
 
-		sites = read_from_file()
+        sites = read_from_file()
 
-		foundSite = False
-		for s in sites:
-			if(s.url == data["site"]):
-				foundSite = True
-				lastAction = s.actions[len(s.actions) - 1]
-				if(data["action_type"] == "keypress" and lastAction.type == "keypress" and lastAction.xpath == data["xpath"]):
-					lastAction.value = lastAction.value + data["value"]	
-				else:
-					s.actions.append(Action(type=data["action_type"], xpath=data["xpath"], value=data["value"]))
-				
-				break;
-		
-		if foundSite is False:
-			newSite = Site(url=data["site"], actions=[Action(type=data["action_type"], xpath=data["xpath"], value=data["value"])])
-			sites.append(newSite)
+        foundSite = False
+        for s in sites:
+            if (s.url == data["site"]):
+                foundSite = True
+                lastAction = s.actions[len(s.actions) - 1]
+                if (data["action_type"] == "keypress" and lastAction.action_type == "keypress" and lastAction.xpath ==
+                        data["xpath"]):
+                    lastAction.value = lastAction.value + data["value"]
+                else:
+                    s.actions.append(Action(action_type=data["action_type"], xpath=data["xpath"], value=data["value"]))
 
-		write_to_file(sites)
+                break
+
+        if foundSite is False:
+            newSite = Site(url=data["site"],
+                           actions=[Action(action_type=data["action_type"], xpath=data["xpath"], value=data["value"])])
+            sites.append(newSite)
+
+        write_to_file(sites)
 
         # Send a response
         self.send_response(200)
@@ -127,6 +133,7 @@ class MyServer(http.server.SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.end_headers()
+
 
 def launchServerForPersistence():
     my_server = None
@@ -147,7 +154,6 @@ def launchServerForPersistence():
             my_server.server_close()
 
 
-
 def parseActions(actionsJson):
     jsonObjs = []
     if type(actionsJson) == str:
@@ -155,7 +161,7 @@ def parseActions(actionsJson):
 
     events = []
     for action in jsonObjs:
-        events.append(Action(action["type"], action["xpath"], action["value"]))
+        events.append(Action(action["action_type"], action["xpath"], action["value"]))
     return events
 
 
@@ -217,4 +223,4 @@ def recordSiteTemplate(URL):
 
 # recordSiteTemplate("https://www.billetlugen.dk/")
 launchServerForPersistence()
-#performActions()
+# performActions()
