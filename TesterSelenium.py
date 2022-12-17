@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 import http.server
@@ -7,14 +8,14 @@ import json
 import time
 
 class Action:
-    def __init__(self, type, xpath, value):
-        self.type = type
-        self.xpath = xpath
-        self.value = value
+	def __init__(self, action_type, xpath, value):
+		self.action_type = action_type
+		self.xpath = xpath
+		self.value = value
 
-    def __str__(self):
-        return f"type: {self.type}, xpath: {self.xpath}, value: {self.value}"
-    
+	def __str__(self):
+		return f"type: {self.action_type}, xpath: {self.xpath}, value: {self.value}"
+
 class Site:
 	def __init__(self, url, actions):
 		self.url = url
@@ -53,24 +54,25 @@ class MyServer(http.server.SimpleHTTPRequestHandler):
 		self.end_headers()
 
 def write_to_file(sites):
-    # Open the file in write mode
-    with open('sites.txt', 'w') as f:
-        # Convert the sites list to a JSON string
-        data = json.dumps(sites, default=lambda o: o.__dict__)
-        # Write the JSON string to the file
-        f.write(data)
+	# Open the file in write mode
+	with open('sites.txt', 'w') as f:
+		# Convert the sites list to a JSON string
+		data = json.dumps(sites, default=lambda o: o.__dict__)
+		# Write the JSON string to the file
+		f.write(data)
 
 # Read the sites and actions from a text file
 def read_from_file():
-    # Open the file in read mode
-    with open('sites.txt', 'r') as f:
-        # Read the contents of the file
-        data = f.read()
-        # Convert the JSON string to a list of sites
-        sites = json.loads(data, object_hook=lambda d: Site(**d))
-        return sites
+	# Open the file in read mode
+	with open('sites.txt', 'r') as f:
+		# Read the contents of the file
+		data = f.read()
+		# Convert the JSON string to a list of sites
+		sites = json.loads(data, object_hook=lambda d: Site(**d))
+		return sites
 
 def launchServerForPersistence():
+	my_server = None
 	handler_object = MyServer
 	PORT = 8000
 	print(f'Starting: http://localhost:{PORT}')	
@@ -84,7 +86,8 @@ def launchServerForPersistence():
 	finally:
 		# solution for `OSError: [Errno 98] Address already in use
 		print('Closing')
-		my_server.server_close()
+		if my_server is not None:
+			my_server.server_close()
 
 def default(o):
 	if isinstance(o, Action):
@@ -109,27 +112,27 @@ def default(o):
 		raise TypeError(f'Object of type {o.__class__.__name__} is not JSON serializable')
 
 def write_to_file(sites):
-    # Open the file in write mode
-    with open('sites.txt', 'w') as f:
-        # Convert the sites list to a JSON string
-        data = json.dumps(sites, default=default)
-        # Write the JSON string to the file
-        f.write(data)
+	# Open the file in write mode
+	with open('sites.txt', 'w') as f:
+		# Convert the sites list to a JSON string
+		data = json.dumps(sites, default=default)
+		# Write the JSON string to the file
+		f.write(data)
 
 def object_hook(d):
-    if 'actions' in d:
-        return Site(d['url'], [Action(a['action_type'], a['xpath'], a['value']) for a in d['actions']])
-    return d
+	if 'actions' in d:
+		return Site(d['url'], [Action(a['action_type'], a['xpath'], a['value']) for a in d['actions']])
+	return d
 
 # Read the sites and actions from a text file
 def read_from_file():
-    # Open the file in read mode
-    with open('sites.txt', 'r') as f:
-        # Read the contents of the file
-        data = f.read()
-        # Convert the JSON string to a list of sites
-        sites = json.loads(data, object_hook=object_hook)
-        return sites
+	# Open the file in read mode
+	with open('sites.txt', 'r') as f:
+		# Read the contents of the file
+		data = f.read()
+		# Convert the JSON string to a list of sites
+		sites = json.loads(data, object_hook=object_hook)
+		return sites
 
 def parseActions(actionsJson):
 	jsonObjs = []
@@ -154,7 +157,7 @@ def performActions():
 		element = driver.find_element(By.XPATH, e.xpath)
 		actionChain = ActionChains(driver)
 		actionChain.move_to_element(element)
-		if e.type == "click":
+		if e.action_type == "click":
 			actionChain.click(element)
 		else:
 			element.send_keys(e.value)
