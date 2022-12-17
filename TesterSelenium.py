@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 import http.server
@@ -11,18 +12,19 @@ from pathlib import Path
 filename = 'sites.txt'
 
 class Action:
-    def __init__(self, type, xpath, value):
-        self.type = type
+    def __init__(self, action_type, xpath, value):
+        self.action_type = action_type
         self.xpath = xpath
         self.value = value
 
     def __str__(self):
-        return f"type: {self.type}, xpath: {self.xpath}, value: {self.value}"
-    
+        return f"type: {self.action_type}, xpath: {self.xpath}, value: {self.value}"
+
+
 class Site:
-	def __init__(self, url, actions):
-		self.url = url
-		self.actions = actions
+    def __init__(self, url, actions):
+        self.url = url
+        self.actions = actions
 
 def default(o):
 	if isinstance(o, Action):
@@ -77,18 +79,17 @@ def read_from_file():
 
 
 class MyServer(http.server.SimpleHTTPRequestHandler):
-	def do_GET(self):
-		print(self.path)
-		
-		self.send_response(200)
+    def do_GET(self):
+        print(self.path)
 
-	def do_POST(self):
-		# Read the request body
-		content_length = int(self.headers['Content-Length'])
-		body = self.rfile.read(content_length)
-		print("inside post handler")
-		# Unpack the JSON object from the request body
-		data = json.loads(body)
+        self.send_response(200)
+
+    def do_POST(self):
+        # Read the request body
+        content_length = int(self.headers['Content-Length'])
+        body = self.rfile.read(content_length)
+        # Unpack the JSON object from the request body
+        data = json.loads(body)
 
 		print(data)
 
@@ -112,81 +113,107 @@ class MyServer(http.server.SimpleHTTPRequestHandler):
 
 		write_to_file(sites)
 
-		# Send a response
-		self.send_response(200)
-		self.end_headers()
+        # Send a response
+        self.send_response(200)
+        self.end_headers()
 
-	def end_headers(self):
-		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('Access-Control-Allow-Methods', '*')
-		self.send_header('Access-Control-Allow-Headers', '*')
-		self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
-		return super(MyServer, self).end_headers()
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', '*')
+        self.send_header('Access-Control-Allow-Headers', '*')
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
+        return super(MyServer, self).end_headers()
 
-	def do_OPTIONS(self):
-		self.send_response(200)
-		self.end_headers()
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
 
 def launchServerForPersistence():
-	handler_object = MyServer
-	PORT = 8000
-	print(f'Starting: http://localhost:{PORT}')	
-	try:
-		socketserver.TCPServer.allow_reuse_address = True  # solution for `OSError: [Errno 98] Address already in use`
-		my_server = socketserver.TCPServer(("", PORT), handler_object)
-		my_server.serve_forever()
-	except KeyboardInterrupt:
-		# solution for `OSError: [Errno 98] Address already in use - when stoped by Ctr+C
-		print('Stoped by "Ctrl+C"')
-	finally:
-		# solution for `OSError: [Errno 98] Address already in use
-		print('Closing')
-		my_server.server_close()
+    my_server = None
+    handler_object = MyServer
+    PORT = 8000
+    print(f'Starting: http://localhost:{PORT}')
+    try:
+        socketserver.TCPServer.allow_reuse_address = True  # solution for `OSError: [Errno 98] Address already in use`
+        my_server = socketserver.TCPServer(("", PORT), handler_object)
+        my_server.serve_forever()
+    except KeyboardInterrupt:
+        # solution for `OSError: [Errno 98] Address already in use - when stoped by Ctr+C
+        print('Stoped by "Ctrl+C"')
+    finally:
+        # solution for `OSError: [Errno 98] Address already in use
+        print('Closing')
+        if my_server is not None:
+            my_server.server_close()
+
 
 
 def parseActions(actionsJson):
-	jsonObjs = []
-	if(type(actionsJson) == str):
-		jsonObjs = json.loads(actionsJson)
+    jsonObjs = []
+    if type(actionsJson) == str:
+        jsonObjs = json.loads(actionsJson)
 
-	events = []
-	for action in jsonObjs:
-		events.append(Action(action["type"], action["xpath"], action["value"]))
-	return events
+    events = []
+    for action in jsonObjs:
+        events.append(Action(action["type"], action["xpath"], action["value"]))
+    return events
+
 
 def performActions():
-	events = parseActions("[{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/header[1]/div[2]/a[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/header[1]/div[4]/div[2]/div[1]/div[1]/a[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/div[1]/div[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[@id=\\\"date\\\"]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/table[1]/tbody[1]/tr[3]/td[3]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/div[2]/div[2]/ul[1]/li[2]/div[1]/div[1]/div[3]/a[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/ul[1]/li[1]/div[2]/div[1]/button[2]/svg[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/ul[1]/li[1]/div[2]/div[1]/button[2]/svg[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[2]/button[1]/span[1]\",\"value\":\"\"}]")
+    events = parseActions(
+        "[{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/header[1]/div[2]/a[1]\",\"value\":\"\"},"
+        "{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/header[1]/div[4]/div[2]/div[1]/div[1]/a[1]\","
+        "\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div["
+        "1]/div[1]/div[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div["
+        "1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[@id=\\\"date\\\"]\",\"value\":\"\"},"
+        "{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div["
+        "1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/table[1]/tbody[1]/tr["
+        "3]/td[3]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div["
+        "1]/div[1]/div[2]/div[2]/ul[1]/li[2]/div[1]/div[1]/div[3]/a[1]\",\"value\":\"\"},{\"type\":\"click\","
+        "\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[1]/ul[1]/li[1]/div[2]/div[1]/button["
+        "2]/svg[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body[1]/div[1]/div[2]/div[2]/main[1]/div[1]/div["
+        "1]/div[1]/ul[1]/li[1]/div[2]/div[1]/button[2]/svg[1]\",\"value\":\"\"},{\"type\":\"click\",\"xpath\":\"/body["
+        "1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[2]/button[1]/span[1]\",\"value\":\"\"}]")
 
-	driver = webdriver.Chrome()
-	driver.maximize_window()
+    driver = webdriver.Chrome()
+    driver.maximize_window()
 
-	driver.get("https://www.billet.dk/")
-	driver.implicitly_wait(10)
+    driver.get("https://www.billet.dk/")
+    driver.implicitly_wait(10)
 
-	for e in events:
-		element = driver.find_element(By.XPATH, e.xpath)
-		actionChain = ActionChains(driver)
-		actionChain.move_to_element(element)
-		if e.type == "click":
-			actionChain.click(element)
-		else:
-			element.send_keys(e.value)
-		
-		actionChain.perform()
+    for e in events:
+        element = driver.find_element(By.XPATH, e.xpath)
+        actionChain = ActionChains(driver)
+        actionChain.move_to_element(element)
+        if e.action_type == "click":
+            actionChain.click(element)
+        else:
+            element.send_keys(e.value)
+
+        actionChain.perform()
+
 
 def recordSiteTemplate(URL):
-	driver = webdriver.Chrome()
-	driver.maximize_window()
+    driver = webdriver.Chrome()
+    driver.maximize_window()
 
-	driver.get(URL)
+    driver.get(URL)
 
-	with open('trackSnippet.js', 'r') as file:
-		script = file.read()
-	# remove all newline characters from the string
-	script = script.replace('\n', '')
+    with open('trackSnippet.js', 'r') as file:
+        trackSnippet = file.read()
 
-	driver.execute_script(script)
-	time.sleep(100)
+    trackSnippet = trackSnippet.replace('\n', '')
+
+    alive = True
+    while alive:
+        driver.execute_script(trackSnippet)
+        time.sleep(1)
+        # Check if the browser is still open.
+        try:
+            url = driver.current_url
+        except WebDriverException:
+            alive = False
+
 
 # recordSiteTemplate("https://www.billetlugen.dk/")
 launchServerForPersistence()
