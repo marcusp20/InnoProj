@@ -177,5 +177,5 @@ def recordSiteTemplate(URL):
     my_server.shutdown(socket.SHUT_RDWR)
 
 
-
-recordSiteTemplate("https://www.billetlugen.dk/")
+if __name__ == "__main__":
+    recordSiteTemplate("https://www.billetlugen.dk/")

@@ -34,15 +34,15 @@ def performActions():
     #     "1]/div[1]/div[2]/div[2]/main[1]/div[1]/div[1]/div[2]/button[1]/span[1]\",\"value\":\"\"}]")
 
     sites = read_from_file()
-    events = sites[0].actions
-    
+    site1 = sites[0]
+
     driver = webdriver.Chrome()
     driver.maximize_window()
 
-    driver.get("https://www.billet.dk/")
+    driver.get(site1.url)
     driver.implicitly_wait(10)
 
-    for e in events:
+    for e in site1.actions:
         element = driver.find_element(By.XPATH, e.xpath)
         actionChain = ActionChains(driver)
         actionChain.move_to_element(element)

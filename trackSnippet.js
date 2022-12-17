@@ -66,6 +66,7 @@
 
             parent = parent.parentElement;
         }
+        xpath = `/` + xpath;
         return xpath
     }
 
