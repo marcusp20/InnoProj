@@ -8,25 +8,9 @@ import socketserver
 import json
 import time
 from pathlib import Path
+from SiteAndActionClasses import Action, Site
 
 filename = 'sites.txt'
-
-
-class Action:
-    def __init__(self, action_type, xpath, value):
-        self.action_type = action_type
-        self.xpath = xpath
-        self.value = value
-
-    def __str__(self):
-        return f"type: {self.action_type}, xpath: {self.xpath}, value: {self.value}"
-
-
-class Site:
-    def __init__(self, url, actions):
-        self.url = url
-        self.actions = actions
-
 
 class MyServer(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -92,7 +76,6 @@ def default(o):
     else:
         raise TypeError(f'Object of type {o.__class__.__name__} is not JSON serializable')
 
-
 def write_to_file(sites):
     # Open the file in write mode
     with open(filename, 'w') as f:
@@ -101,12 +84,10 @@ def write_to_file(sites):
         # Write the JSON string to the file
         f.write(data)
 
-
 def object_hook(d):
     if 'actions' in d:
         return Site(d['url'], [Action(a['action_type'], a['xpath'], a['value']) for a in d['actions']])
     return d
-
 
 # Read the sites and actions from a text file
 def read_from_file():
@@ -172,7 +153,6 @@ def recordSiteTemplate(URL):
 
     trackSnippet = trackSnippet.replace('\n', '')
 
-    global alive
     alive = True
     while alive:
         driver.execute_script(trackSnippet)
