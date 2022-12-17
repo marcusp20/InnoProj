@@ -101,12 +101,12 @@ def object_hook(d):
     return d
 
 # Read the sites and actions from a text file
-def read_from_file():
-    myfile = Path(filename)
+def read_from_file(name = filename):
+    myfile = Path(name)
     myfile.touch(exist_ok=True)
 
     # Open the file in read mode
-    with open(filename, 'r') as f:
+    with open(name, 'r') as f:
         # Read the contents of the file
         data = f.read()
         if data == '':
@@ -115,19 +115,6 @@ def read_from_file():
         # Convert the JSON string to a list of sites
         sites = json.loads(data, object_hook=object_hook)
         return sites
-
-
-
-    def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', '*')
-        self.send_header('Access-Control-Allow-Headers', '*')
-        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
-        return super(MyServer, self).end_headers()
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.end_headers()
 
 
 def launchServerForPersistence():
