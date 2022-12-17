@@ -69,6 +69,12 @@
         return xpath
     }
 
+    /**
+     * Called by the event listeners. This will send the recorded action to the local server.
+     * @param element The element which the user interacted with.
+     * @param type What the user did. Ex: Click, Type(key press)
+     * @param key If the user typed something, this will contain what was typed.
+     */
     function updateEvents(element, type, key = '') {
         var xpath = getXPath(element);
         
