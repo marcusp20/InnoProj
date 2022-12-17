@@ -4,6 +4,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 import http.server
 import socketserver
 import json
+import re
+import time
 
 class Action:
     def __init__(self, type, xpath, value):
@@ -160,5 +162,20 @@ def performActions():
 		
 		actionChain.perform()
 
+def recordSiteTemplate(URL):
+	driver = webdriver.Chrome()
+	driver.maximize_window()
+
+	driver.get(URL)
+
+	with open('trackSnippet.js', 'r') as file:
+		script = file.read()
+	# remove all newline characters from the string
+	script = script.replace('\n', '')
+
+	driver.execute_script(script)
+	time.sleep(100)
+
+recordSiteTemplate("https://www.billetlugen.dk/")
 #launchServerForPersistence()
 #performActions()
