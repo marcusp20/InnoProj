@@ -1,3 +1,0 @@
-javascript: (function () {
-    localStorage.myEvents = [];
-})();
