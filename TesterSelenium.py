@@ -4,7 +4,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 import http.server
 import socketserver
 import json
-import re
 import time
 
 class Action:
@@ -169,12 +168,19 @@ def recordSiteTemplate(URL):
 	driver.get(URL)
 
 	with open('trackSnippet.js', 'r') as file:
-		script = file.read()
-	# remove all newline characters from the string
-	script = script.replace('\n', '')
+		trackSnippet = file.read()
 
-	driver.execute_script(script)
-	time.sleep(100)
+	trackSnippet = trackSnippet.replace('\n', '')
+
+	alive = True
+	while alive:
+		driver.execute_script(trackSnippet)
+		time.sleep(1)
+		# Check if the browser is still open.
+		try:
+			url = driver.current_url
+		except WebDriverException:
+			alive = False
 
 recordSiteTemplate("https://www.billetlugen.dk/")
 #launchServerForPersistence()
