@@ -10,6 +10,9 @@
  * since the script needs to be a "one-liner" in the bookmarklet.
  */
 (function () {
+    if(window.hasAddedEventListener){
+        return;
+    }
     /* Set up a click event listener on the window. */
     window.addEventListener('click', function (event) {
         console.log(event);
@@ -21,6 +24,8 @@
         console.log(event);
         updateEvents(event.target, 'keypress', event.key);
     });
+
+    window.hasAddedEventListener = true;
 
     /**
      * Returns an XPath expression that can be used to select the given HTML element in an XML document.
