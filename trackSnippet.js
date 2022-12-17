@@ -9,7 +9,7 @@
  * All comments must be encapsulated by multi-line comments
  * since the script needs to be a "one-liner" in the bookmarklet.
  */
-javascript: (function () {
+(function () {
     /* Set up a click event listener on the window. */
     window.addEventListener('click', function (event) {
         console.log(event);
@@ -80,22 +80,4 @@ javascript: (function () {
 
         localStorage.myEvents = JSON.stringify(data);
     }
-})();
-
-javascript: (function () {
-    console.log(JSON.stringify(localStorage.myEvents));
-
-    fetch("http://localhost:8000/", {
-        method: "POST",
-        body: JSON.stringify(localStorage.myEvents),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-    .then(response => response.json())
-    .then(json => console.log(json));
-})();
-
-javascript: (function () {
-    localStorage.myEvents = [];
 })();
