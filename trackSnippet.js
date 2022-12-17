@@ -70,19 +70,46 @@
     }
 
     function updateEvents(element, type, key = '') {
-        var data = JSON.parse(localStorage.myEvents || '[]');
-
         var xpath = getXPath(element);
-        if (type == 'keypress' && data.length && data[data.length - 1].type === "keypress")
-            data[data.length - 1].value += key;
-        else {
-            data.push({
-                type: type,
+        
+        fetch("http://localhost:8000/", {
+            method: "POST",
+            body: JSON.stringify({
+                site: window.location.origin,
+                action_type: type,
                 xpath: xpath,
                 value: key
-            });
-        }
+            }),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => {
+            console.log(response.status);
 
-        localStorage.myEvents = JSON.stringify(data);
+            return response.json();
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
     }
 })();
+
+
+// function updateEvents(element, type, key = '') {
+//     var data = JSON.parse(localStorage.myEvents || '[]');
+
+//     var xpath = getXPath(element);
+//     if (type == 'keypress' && data.length && data[data.length - 1].type === "keypress")
+//         data[data.length - 1].value += key;
+//     else {
+//         data.push({
+//             type: type,
+//             xpath: xpath,
+//             value: key
+//         });
+//     }
+
+//     localStorage.myEvents = JSON.stringify(data);
+// }
